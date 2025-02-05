@@ -1,3 +1,6 @@
+# Dalton Muck
+# CS4150 Activity #6
+
 import random
 
 # Open the file for reading
@@ -141,6 +144,3 @@ with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value
             formatted_value = f"{Jaccard[i][j]['value']:.5f}"
             file.write(formatted_value + "\t")
         file.write("\n")
-
-
-
