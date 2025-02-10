@@ -1,164 +1,164 @@
-        F10B3  F10A3  F10A3
-F10A3	      x      x      
-F10A5	      x      x      
-F10B3	x      x      x      
+        F9A4  F5C1  F9D6
+F10A3	x                  
+F10A5	x                  
+F10B3	x                  
 F10B5	x                  
-F10C1	      x      x      
+F10C1	            z      
 F10C3	x                  
-F10C4	      x      x      
-F10D1	      y      y      
-F10D5	x      x      x      
+F10C4	x                  
+F10D1	x                  
+F10D5	x                  
 F10E3	x                  
-F10E5	x      x      x      
-F10F1	x      x      x      
-F10F3	      x      x      
-F10F5	      x      x      
-F10G2	x                  
-F11A3	x      x      x      
-F11A6	      x      x      
-F11B1	      y      y      
-F11B2	      x      x      
-F11B5	      x      x      
+F10E5	x                  
+F10F1	x                  
+F10F3	            z      
+F10F5	            z      
+F10G2	      y            
+F11A3	x                  
+F11A6	x                  
+F11B1	            z      
+F11B2	            z      
+F11B5	            z      
 F11C2	x                  
-F11D1	      x      x      
-F11D2	x      x      x      
-F11D4	      y      y      
-F11G3	x      x      x      
-F11G4	      x      x      
-F12B1	      x      x      
-F12B2	      x      x      
-F12B3	      x      x      
-F12C6	      x      x      
-F12D4	      x      x      
-F12E1	x      x      x      
-F12E4	      x      x      
-F12E5	      y      y      
-F12E6	      x      x      
-F12F1	      x      x      
-F12F5	      y      y      
-F12G1	      y      y      
-F15A3	      x      x      
-F15A5	      x      x      
-F15A6	      x      x      
-F15B5	      x      x      
-F15C5	      x      x      
-F15C6	      x      x      
-F15C8	x      x      x      
-F15D1	x      x      x      
-F15D2	      x      x      
-F15E1	      x      x      
-F15E2	      x      x      
-F15E4	      x      x      
-F15E5	      y      y      
+F11D1	            z      
+F11D2	      y            
+F11D4	x                  
+F11G3	            z      
+F11G4	            z      
+F12B1	            z      
+F12B2	x                  
+F12B3	      y            
+F12C6	            z      
+F12D4	x                  
+F12E1	x                  
+F12E4	            z      
+F12E5	x                  
+F12E6	            z      
+F12F1	            z      
+F12F5	x                  
+F12G1	            z      
+F15A3	x                  
+F15A5	            z      
+F15A6	      y            
+F15B5	            z      
+F15C5	x                  
+F15C6	x                  
+F15C8	            z      
+F15D1	x                  
+F15D2	            z      
+F15E1	      y            
+F15E2	x                  
+F15E4	      y            
+F15E5	            z      
 F15E7	x                  
-F15F1	      x      x      
-F15F3	x      x      x      
-F15F5	x                  
-F15F6	      x      x      
-F15F8	      x      x      
-F15H1	      y      y      
-F15H5	      x      x      
+F15F1	x                  
+F15F3	x                  
+F15F5	            z      
+F15F6	x                  
+F15F8	            z      
+F15H1	      y            
+F15H5	      y            
 F16A2	x                  
-F16A4	      x      x      
-F16A5	x      x      x      
-F16B1	      x      x      
-F16B2	      x      x      
-F16B3	      x      x      
-F16B6	      y      y      
-F16C1	      x      x      
-F16D6	      y      y      
-F16F4	      x      x      
-F16G3	x                  
-F16G4	      x      x      
-F16G6	      x      x      
-F17A7	      x      x      
-F17B1	      y      y      
-F17B7	      x      x      
-F17C1	      x      x      
-F17C2	      x      x      
-F17C7	      x      x      
-F17D6	      y      y      
-F17E6	      x      x      
-F17E7	      x      x      
-F17F3	x      x      x      
-F17F5	      x      x      
-F17G3	      x      x      
-F17G5	      x      x      
-F18B2	      y      y      
-F18B4	      y      y      
-F18C4	      x      x      
-F18D2	      x      x      
-F18E1	      x      x      
-F18E2	      x      x      
-F18F2	      x      x      
+F16A4	x                  
+F16A5	x                  
+F16B1	x                  
+F16B2	      y            
+F16B3	x                  
+F16B6	            z      
+F16C1	      y            
+F16D6	            z      
+F16F4	      y            
+F16G3	      y            
+F16G4	      y            
+F16G6	            z      
+F17A7	      y            
+F17B1	            z      
+F17B7	      y            
+F17C1	x                  
+F17C2	x                  
+F17C7	x                  
+F17D6	x                  
+F17E6	x                  
+F17E7	x                  
+F17F3	x                  
+F17F5	      y            
+F17G3	x                  
+F17G5	      y            
+F18B2	            z      
+F18B4	      y            
+F18C4	            z      
+F18D2	      y            
+F18E1	      y            
+F18E2	            z      
+F18F2	            z      
 F3F1	x                  
-F5A2	x      x      x      
-F5A4	      x      x      
+F5A2	      y            
+F5A4	      y            
 F5B1	x                  
-F5B2	x      x      x      
-F5B3	      y      y      
-F5B4	x      x      x      
-F5C1	      x      x      
-F5C2	      x      x      
-F5C4	      x      x      
-F5D1	      x      x      
-F5E2	x      x      x      
-F5E4	      x      x      
-F5F2	      x      x      
-F5G2	      x      x      
+F5B2	x                  
+F5B3	      y            
+F5B4	      y            
+F5C1	      y            
+F5C2	      y            
+F5C4	x                  
+F5D1	      y            
+F5E2	      y            
+F5E4	      y            
+F5F2	      y            
+F5G2	      y            
 F6A4	x                  
-F6B2	      x      x      
-F6B4	      x      x      
-F6C2	      x      x      
-F6C4	      x      x      
-F6D2	      y      y      
-F6E2	      x      x      
-F6E4	      x      x      
-F6F2	      x      x      
-F6F4	      x      x      
-F6G2	x      x      x      
-F6G3	      x      x      
-F7A3	      x      x      
-F7A6	      x      x      
+F6B2	x                  
+F6B4	x                  
+F6C2	      y            
+F6C4	      y            
+F6D2	      y            
+F6E2	      y            
+F6E4	            z      
+F6F2	      y            
+F6F4	            z      
+F6G2	x                  
+F6G3	            z      
+F7A3	x                  
+F7A6	x                  
 F7B1	x                  
-F7B2	x      x      x      
-F7B4	      x      x      
-F7B5	      x      x      
-F7B6	      x      x      
-F7C1	      x      x      
-F7C2	      x      x      
-F7C6	      x      x      
-F7D2	      x      x      
-F7D3	      x      x      
-F7D4	      x      x      
-F7D6	x      x      x      
-F7E2	      y      y      
-F7E6	x      x      x      
-F7F2	x      x      x      
+F7B2	x                  
+F7B4	x                  
+F7B5	x                  
+F7B6	            z      
+F7C1	            z      
+F7C2	x                  
+F7C6	            z      
+F7D2	            z      
+F7D3	x                  
+F7D4	            z      
+F7D6	x                  
+F7E2	      y            
+F7E6	x                  
+F7F2	x                  
 F7F3	x                  
-F7F6	x      x      x      
-F7G2	x      x      x      
-F7G5	      x      x      
-F8A1	      x      x      
-F8A2	      x      x      
-F8B2	      x      x      
+F7F6	x                  
+F7G2	x                  
+F7G5	            z      
+F8A1	      y            
+F8A2	x                  
+F8B2	x                  
 F8B4	x                  
-F8B5	x      x      x      
-F8C5	x                  
-F8D3	x      x      x      
-F8D4	x      x      x      
-F8E6	      x      x      
-F8G1	x      x      x      
-F8G2	      x      x      
-F9A2	      x      x      
-F9A3	      x      x      
-F9A4	      x      x      
-F9A5	      x      x      
-F9B4	x      x      x      
-F9B6	      x      x      
-F9C5	      y      y      
-F9D3	      x      x      
-F9D6	      x      x      
-F9F2	      y      y      
-F9F3	      x      x      
-F9G3	      x      x      
+F8B5	x                  
+F8C5	      y            
+F8D3	x                  
+F8D4	x                  
+F8E6	x                  
+F8G1	x                  
+F8G2	x                  
+F9A2	x                  
+F9A3	            z      
+F9A4	x                  
+F9A5	x                  
+F9B4	x                  
+F9B6	x                  
+F9C5	            z      
+F9D3	            z      
+F9D6	            z      
+F9F2	            z      
+F9F3	x                  
+F9G3	x                  

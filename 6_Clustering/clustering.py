@@ -100,87 +100,76 @@ medoid_z = random.randint(0, len(Jaccard) - 1)
 while medoid_z == medoid_x or medoid_z == medoid_y:
     medoid_z = random.randint(0, len(Jaccard) - 1)
 
-medoid_x = 11
-medoid_y = 161
-medoid_z = 106
+
+
 iterations = 0
-while True:
+while (True):
+    prev_medoids = (medoid_x, medoid_y, medoid_z)
     # Classify each Normalized Jaccard Value into a class x, y, or z
     for i in range(len(hist1_np_data)):  # each element in row
-    #find the highest similarity in each row
         max_sim = max(Jaccard[i][medoid_x]["value"], Jaccard[i][medoid_y]["value"], Jaccard[i][medoid_z]["value"])
+        # reset class values
+        for i in range(len(hist1_np_data)):
+            Jaccard[i][medoid_x]["class"] = ""
+            Jaccard[i][medoid_y]["class"] = ""
+            Jaccard[i][medoid_z]["class"] = ""
         if max_sim == Jaccard[i][medoid_x]["value"]:
             Jaccard[i][medoid_x]["class"] = "x"
         elif max_sim == Jaccard[i][medoid_y]["value"]:
             Jaccard[i][medoid_y]["class"] = "y"
         else:
             Jaccard[i][medoid_z]["class"] = "z"
-
-    # Find the average J value for each class 
+    # # Find the average J value for each class 
     x_sum, y_sum, z_sum, x_count, y_count, z_count = 0, 0, 0, 0, 0, 0
 
     for i in range(len(hist1_np_data)):
-        if Jaccard[i][medoid_x]["class"] == "x":
+        if Jaccard[i][medoid_x]["class"] != "":
             x_sum += Jaccard[i][medoid_x]["value"]
             x_count += 1
-        elif Jaccard[i][medoid_y]["class"] == "y":
+        elif Jaccard[i][medoid_y]["class"] != "":
             y_sum += Jaccard[i][medoid_y]["value"]
             y_count += 1
         else:
             z_sum += Jaccard[i][medoid_z]["value"]
             z_count += 1
-    # assign averages account for 0 division
-    if(x_count == 0):
-        x_avg = 0
-    else:
-        x_avg = x_sum / x_count
 
-    if(y_count == 0):
-        y_avg = 0
-    else:
-        y_avg = y_sum / y_count
-    if(z_count == 0):
-        z_avg = 0
-    else:
-        z_avg = z_sum / z_count
+    # Assign averages, accounting for division by zero
+    x_avg = x_sum / x_count if x_count != 0 else 0
+    y_avg = y_sum / y_count if y_count != 0 else 0
+    z_avg = z_sum / z_count if z_count != 0 else 0
 
+    print("x_avg: ", x_avg, "y_avg: ", y_avg, "z_avg: ", z_avg)
 
     # Find which point is closest to the average in each class
     x_closest, y_closest, z_closest = 0, 0, 0
     for i in range(len(hist1_np_data)):
-        if Jaccard[i][medoid_x]["class"] == "x":
-            if abs(Jaccard[i][medoid_x]["value"] - x_avg) > abs(Jaccard[x_closest][medoid_x]["value"] - x_avg):
+        #if Jaccard[i][medoid_x]["class"] != "":
+            if abs(Jaccard[i][medoid_x]["value"] - x_avg) < abs(Jaccard[x_closest][medoid_x]["value"] - x_avg):
                 x_closest = i
-        if Jaccard[i][medoid_y]["class"] == "y":
-            if abs(Jaccard[i][medoid_y]["value"] - y_avg) > abs(Jaccard[y_closest][medoid_y]["value"] - y_avg):
+       # if Jaccard[i][medoid_y]["class"] != "":
+            if abs(Jaccard[i][medoid_y]["value"] - y_avg) < abs(Jaccard[y_closest][medoid_y]["value"] - y_avg):
                 y_closest = i
-        if Jaccard[i][medoid_z]["class"] == "z":
-                if abs(Jaccard[i][medoid_z]["value"] - z_avg) > abs(Jaccard[z_closest][medoid_z]["value"] - z_avg):
-                    z_closest = i
+        #if Jaccard[i][medoid_z]["class"] != "":
+            if abs(Jaccard[i][medoid_z]["value"] - z_avg) < abs(Jaccard[z_closest][medoid_z]["value"] - z_avg):
+                z_closest = i
+
     print("Iteration: ", iterations)
-    #print all the x_closest, y_closest, z_closest & medoid_x, medoid_y, medoid_z
+    # Print all the x_closest, y_closest, z_closest & medoid_x, medoid_y, medoid_z
     print("x_closest: ", x_closest, "y_closest: ", y_closest, "z_closest: ", z_closest)
     print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
-    if ( (medoid_x == x_closest and medoid_y == y_closest and medoid_z == z_closest)) or \
-       (iterations != 0 and prev_medoids == (x_closest, y_closest, z_closest)):
+
+
+    if prev_medoids == (x_closest, y_closest, z_closest):
         print("Centroids are the closest to the average in their class after ", iterations, " iterations.")
         break
-    # if(iterations == 0):
-    #     break
-    # Update previous medoids and iteration count
-    prev_medoids = (medoid_x, medoid_y, medoid_z)
-    iterations += 1
 
-    # Update medoids to the closest points
+    iterations += 1
     medoid_x = x_closest
     medoid_y = y_closest
     medoid_z = z_closest
-    
-    # if(iterations == 100):
-    #     print(Jaccard[i][medoid_x]["value"], Jaccard[i][medoid_y]["value"], Jaccard[i][medoid_z]["value"])
-    #     print(Jaccard[i][x_closest]["value"], Jaccard[i][y_closest]["value"], Jaccard[i][z_closest]["value"])
-    #     break
-# Print the Jaccard Similarity Matrix with values and classes next to each other for the 3 random columns
+    # Update previous medoids and iteration count
+    prev_medoids = (medoid_x, medoid_y, medoid_z)
+
 with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value&Class.txt", "w") as file:
     # Write header
     file.write("        " + "        ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
