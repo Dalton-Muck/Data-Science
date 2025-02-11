@@ -3,6 +3,62 @@
 
 import random
 
+def reset_class_values(Jaccard, hist1_np_data):
+    # Reset class values
+    for i in range(len(hist1_np_data)):
+        for j in range(len(hist1_np_data)):
+            Jaccard[i][j]["class"] = ""
+
+def classify_jaccard_values(Jaccard, hist1_np_data, medoid_x, medoid_y, medoid_z):
+    # Classify each Normalized Jaccard Value into a class x, y, or z
+    for i in range(len(hist1_np_data)):  # each element in row
+        max_sim = max(Jaccard[i][medoid_x]["value"], Jaccard[i][medoid_y]["value"], Jaccard[i][medoid_z]["value"])
+        if max_sim == Jaccard[i][medoid_x]["value"]:
+            Jaccard[i][medoid_x]["class"] = "x"
+        elif max_sim == Jaccard[i][medoid_y]["value"]:
+            Jaccard[i][medoid_y]["class"] = "y"
+        else:
+            Jaccard[i][medoid_z]["class"] = "z"
+
+def calculate_average_similarity(Jaccard, hist1_np_data, medoid_idx, class_label):
+    for i in range(len(hist1_np_data)):  # iterate through each NP
+        sum_similarity = 0
+        count = 0
+
+        for j in range(len(hist1_np_data)):
+                if Jaccard[i][medoid_idx]["class"] == class_label:
+                    if Jaccard[j][medoid_idx]["class"] == class_label and j != medoid_idx:
+                        sum_similarity += Jaccard[i][j]["value"]
+                        count += 1
+
+        if count > 0:
+                Jaccard[i][medoid_idx]["avg"] = sum_similarity / count
+        else:
+                Jaccard[i][medoid_idx]["avg"] = 0
+
+def find_closest_medoid(Jaccard, hist1_np_data, medoid_idx, class_label):
+    closest_idx = -1
+    max_avg = -1
+
+    for idx in range(len(hist1_np_data)):
+        if Jaccard[idx][medoid_idx]["class"] == class_label and Jaccard[idx][medoid_idx]["avg"] > max_avg:
+            max_avg = Jaccard[idx][medoid_idx]["avg"]
+            closest_idx = idx
+
+    return closest_idx
+
+def calculate_within_cluster_sum_of_squares(medoid_idx):
+    total_distance = 0
+    cluster_size = 0
+    for i in range(len(hist1_np_data)):
+        if Jaccard[i][medoid_idx]["class"] == Jaccard[medoid_idx][medoid_idx]["class"]:
+            total_distance += (Jaccard[medoid_idx][medoid_idx]["value"] - Jaccard[i][medoid_idx]["value"])
+            cluster_size += 1
+    if cluster_size == 0:
+        return 0
+    return round(total_distance / cluster_size, 5)
+
+
 # Open the file for reading
 filename = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
 # 2D list to hold the data
@@ -90,7 +146,9 @@ for i in range(len(hist1_np_data)):  # rows
         else:
             # Calculate Normalized Jaccard Similarity Index
             Jaccard[i][j]["value"] = M11 / least_windows
-random.seed(4000)
+
+# Get random medoids
+random.seed(42)
 # Get random indices for centroid of classes
 medoid_x = random.randint(0, len(Jaccard) - 1)
 medoid_y = random.randint(0, len(Jaccard) - 1)
@@ -100,86 +158,49 @@ medoid_z = random.randint(0, len(Jaccard) - 1)
 while medoid_z == medoid_x or medoid_z == medoid_y:
     medoid_z = random.randint(0, len(Jaccard) - 1)
 
-
-
+# Number of times we find a new set of medoids
 iterations = 0
+
 while (True):
-    # Reset class values
-    for i in range(len(hist1_np_data)):
-        for j in range(len(hist1_np_data)):
-            Jaccard[i][j]["class"] = ""
 
-    # Classify each Normalized Jaccard Value into a class x, y, or z
-    for i in range(len(hist1_np_data)):  # each element in row
-        max_sim = max(Jaccard[i][medoid_x]["value"], Jaccard[i][medoid_y]["value"], Jaccard[i][medoid_z]["value"])
-        if max_sim == Jaccard[i][medoid_x]["value"]:
-            Jaccard[i][medoid_x]["class"] = "x"
-        elif max_sim == Jaccard[i][medoid_y]["value"]:
-            Jaccard[i][medoid_y]["class"] = "y"
-        else:
-            Jaccard[i][medoid_z]["class"] = "z"
+    # Save previous medoids
+    prev_medoids = (medoid_x, medoid_y, medoid_z)
 
-    # Calculate the average similarity of each NP compared to every other NP in its class
-    for i in range(len(hist1_np_data)): #iterate through each NP
-        sum = 0
-        count = 0
-        cluster = ""
+    reset_class_values(Jaccard, hist1_np_data)
 
-        if(Jaccard[i][medoid_x]["class"] == "x"):
-            cluster = "x"
-        elif(Jaccard[i][medoid_y]["class"] == "y"):
-            cluster = "y"
-        else:
-            cluster = "z"
+    classify_jaccard_values(Jaccard, hist1_np_data, medoid_x, medoid_y, medoid_z)
 
-        for j in range(len(hist1_np_data)):
-                if cluster == "x":
-                    if Jaccard[j][medoid_x]["class"] == "x":
-                        if j != medoid_x:
-                            sum += Jaccard[i][j]["value"]
-                            count += 1
-                elif cluster == "y":
-                    if Jaccard[j][medoid_y]["class"] == "y":
-                        if j != medoid_y:
-                            sum += Jaccard[i][j]["value"]
-                            count += 1
-                elif cluster == "z":
-                    if Jaccard[j][medoid_z]["class"] == "z":
-                     if j != medoid_z:
-                        sum += Jaccard[i][j]["value"]
-                        count += 1
-        if cluster == "x":
-            Jaccard[i][medoid_x]["avg"] = sum / count
-        elif cluster == "y":
-            Jaccard[i][medoid_y]["avg"] = sum / count
-        else:
-            Jaccard[i][medoid_z]["avg"] = sum / count
+    calculate_average_similarity(Jaccard, hist1_np_data, medoid_x, "x")
+    calculate_average_similarity(Jaccard, hist1_np_data, medoid_y, "y")
+    calculate_average_similarity(Jaccard, hist1_np_data, medoid_z, "z")
 
-
-    # Find the NP with the highest average similarity in each class
-    x_closest = max(range(len(hist1_np_data)), key=lambda idx: Jaccard[idx][medoid_x]["avg"] if Jaccard[idx][medoid_x]["class"] == "x" else -1)
-    y_closest = max(range(len(hist1_np_data)), key=lambda idx: Jaccard[idx][medoid_y]["avg"] if Jaccard[idx][medoid_y]["class"] == "y" else -1)
-    z_closest = max(range(len(hist1_np_data)), key=lambda idx: Jaccard[idx][medoid_z]["avg"] if Jaccard[idx][medoid_z]["class"] == "z" else -1)
-
-    print("Max avg for x: ", Jaccard[x_closest][medoid_x]["avg"])
-    print("Max avg for y: ", Jaccard[y_closest][medoid_y]["avg"])
-    print("Max avg for z: ", Jaccard[z_closest][medoid_z]["avg"])
-                
-
+    x_closest = find_closest_medoid(Jaccard, hist1_np_data, medoid_x, "x")
+    y_closest = find_closest_medoid(Jaccard, hist1_np_data, medoid_y, "y")
+    z_closest = find_closest_medoid(Jaccard, hist1_np_data, medoid_z, "z")
 
     print("Iteration: ", iterations)
-    # Print all the x_closest, y_closest, z_closest & medoid_x, medoid_y, medoid_z
-    print("x_closest: ", x_closest, "y_closest: ", y_closest, "z_closest: ", z_closest)
     print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
-    prev_medoids = (medoid_x, medoid_y, medoid_z)
+
     if prev_medoids == (x_closest, y_closest, z_closest):
         print("Centroids are the closest to the average in their class after", iterations, "iterations.")
         break
-    iterations += 1
+    # Update medoids to the NP with the highest average similarity in each class
     medoid_x = x_closest
     medoid_y = y_closest
     medoid_z = z_closest
+    iterations += 1
 
+# Calculate within-cluster variance
+variance_x = calculate_within_cluster_sum_of_squares(medoid_x)
+variance_y = calculate_within_cluster_sum_of_squares(medoid_y)
+variance_z = calculate_within_cluster_sum_of_squares(medoid_z)
+
+print("Variance for cluster x:", variance_x)
+print("Variance for cluster y:", variance_y)
+print("Variance for cluster z:", variance_z)
+print("Total variance:", (variance_x + variance_y + variance_z) / 3)
+
+# Print the Jaccard Similarity Matrix with the values and classes for the 3 random columns
 with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value&Class.txt", "w") as file:
     # Write header
     file.write("        " + "        ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
@@ -190,7 +211,6 @@ with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value
             formatted_value = f"{Jaccard[i][idx]['value']:.5f}"
             file.write(formatted_value + Jaccard[i][idx]["class"] + "     ")
         file.write("\n")
-
 
 # Print the Jaccard Similarity Matrix with only the classes for the 3 random columns
 with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Class.txt", "w") as file:
