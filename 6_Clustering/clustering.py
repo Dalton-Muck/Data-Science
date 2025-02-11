@@ -202,7 +202,7 @@ variance_z = variation(medoid_z)
 print("Variance for cluster x:", variance_x)
 print("Variance for cluster y:", variance_y)
 print("Variance for cluster z:", variance_z)
-print("Total variance:", (variance_x + variance_y + variance_z) / 3)
+print("Total variance:", (variance_x+variance_y+variance_z) / 3)
 
 # Print the Jaccard Similarity Matrix with the values and classes for the 3 clusters
 with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value&Class.txt", "w") as file:
