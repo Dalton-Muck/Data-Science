@@ -2,6 +2,9 @@
 # CS4150 Activity #6
 
 import random
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 # Have to reset class values before classifying each NP
 def reset_class_values(Jaccard, hist1_np_data):
     # Reset class values
@@ -14,9 +17,17 @@ def classify_jaccard_values(Jaccard, hist1_np_data, medoid_x, medoid_y, medoid_z
     # Classify each Normalized Jaccard Value into a class x, y, or z
     for i in range(len(hist1_np_data)):  # each element in row
         max_sim = max(Jaccard[i][medoid_x]["value"], Jaccard[i][medoid_y]["value"], Jaccard[i][medoid_z]["value"])
+        max_classes = []
         if max_sim == Jaccard[i][medoid_x]["value"]:
+            max_classes.append("x")
+        if max_sim == Jaccard[i][medoid_y]["value"]:
+            max_classes.append("y")
+        if max_sim == Jaccard[i][medoid_z]["value"]:
+            max_classes.append("z")
+        selected_class = random.choice(max_classes)
+        if selected_class == "x":
             Jaccard[i][medoid_x]["class"] = "x"
-        elif max_sim == Jaccard[i][medoid_y]["value"]:
+        elif selected_class == "y":
             Jaccard[i][medoid_y]["class"] = "y"
         else:
             Jaccard[i][medoid_z]["class"] = "z"
@@ -62,6 +73,15 @@ def variation(medoid_idx):
         return 0
     return round(total_distance / cluster_size, 5)
 
+# Jaccard Heatmap for each cluster
+def plot_heatmap(cluster_data, title):
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cluster_data, cmap="coolwarm", yticklabels=True)
+    plt.title(title)
+    plt.xlabel("NPs")
+    plt.ylabel("Windows")
+    
+    plt.show()
 
 # Open the file for reading
 filename = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
@@ -151,61 +171,84 @@ for i in range(len(hist1_np_data)):  # rows
             # Calculate Normalized Jaccard Similarity Index
             Jaccard[i][j]["value"] = M11 / least_windows
 
+
+# Initialize variance variables
+variance_x = 1
+variance_y = 1
+variance_z = 1
+
 # Get random medoids
-
-# Get random indices for centroid of classes
-medoid_x = random.randint(0, len(Jaccard) - 1)
-medoid_y = random.randint(0, len(Jaccard) - 1)
-while medoid_y == medoid_x:
+for i in range(0, 100):
+    # Get random indices for centroid of classes
+    medoid_x = random.randint(0, len(Jaccard) - 1)
     medoid_y = random.randint(0, len(Jaccard) - 1)
-medoid_z = random.randint(0, len(Jaccard) - 1)
-while medoid_z == medoid_x or medoid_z == medoid_y:
+    while medoid_y == medoid_x:
+        medoid_y = random.randint(0, len(Jaccard) - 1)
     medoid_z = random.randint(0, len(Jaccard) - 1)
+    while medoid_z == medoid_x or medoid_z == medoid_y:
+        medoid_z = random.randint(0, len(Jaccard) - 1)
 
-# Number of times we find a new set of medoids
-iterations = 0
+    # Number of times we find a new set of medoids
+    iterations = 0
 
-while (True):
+    while (True):
 
-    # Save previous medoids
-    prev_medoids = (medoid_x, medoid_y, medoid_z)
+        # Save previous medoids
+        prev_medoids = (medoid_x, medoid_y, medoid_z)
 
-    reset_class_values(Jaccard, hist1_np_data)
+        reset_class_values(Jaccard, hist1_np_data)
 
-    classify_jaccard_values(Jaccard, hist1_np_data, medoid_x, medoid_y, medoid_z)
+        classify_jaccard_values(Jaccard, hist1_np_data, medoid_x, medoid_y, medoid_z)
 
-    calculate_average_similarity(Jaccard, hist1_np_data, medoid_x, "x")
-    calculate_average_similarity(Jaccard, hist1_np_data, medoid_y, "y")
-    calculate_average_similarity(Jaccard, hist1_np_data, medoid_z, "z")
+        calculate_average_similarity(Jaccard, hist1_np_data, medoid_x, "x")
+        calculate_average_similarity(Jaccard, hist1_np_data, medoid_y, "y")
+        calculate_average_similarity(Jaccard, hist1_np_data, medoid_z, "z")
 
-    x_closest = find_medoid(Jaccard, hist1_np_data, medoid_x, "x")
-    y_closest = find_medoid(Jaccard, hist1_np_data, medoid_y, "y")
-    z_closest = find_medoid(Jaccard, hist1_np_data, medoid_z, "z")
+        x_closest = find_medoid(Jaccard, hist1_np_data, medoid_x, "x")
+        y_closest = find_medoid(Jaccard, hist1_np_data, medoid_y, "y")
+        z_closest = find_medoid(Jaccard, hist1_np_data, medoid_z, "z")
 
-    print("Iteration: ", iterations)
-    print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
+        #print("Iteration: ", iterations)
+        #print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
 
-    if prev_medoids == (x_closest, y_closest, z_closest):
-        print("Centroids are the closest to the average in their class after", iterations, "iterations.")
-        break
-    # Update medoids to the NP with the highest average similarity in each class
-    medoid_x = x_closest
-    medoid_y = y_closest
-    medoid_z = z_closest
-    iterations += 1
+        if prev_medoids == (x_closest, y_closest, z_closest):
+            #print("Centroids are the closest to the average in their class after", iterations, "iterations.")
+            break
+        # Update medoids to the NP with the highest average similarity in each class
+        medoid_x = x_closest
+        medoid_y = y_closest
+        medoid_z = z_closest
+        iterations += 1
 
-# Calculate within-cluster variance
-variance_x = variation(medoid_x)
-variance_y = variation(medoid_y)
-variance_z = variation(medoid_z)
+    # Calculate within-cluster variance and update if the new variance is better (lower) than the previous variance
+    if variation(medoid_x) + variation(medoid_y) + variation(medoid_z) < (variance_x + variance_y + variance_z):
+        variance_x = variation(medoid_x)
+        variance_y = variation(medoid_y)
+        variance_z = variation(medoid_z)
 
+
+# Extract data for each cluster
+cluster_x_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_x]["class"] == "x"])
+cluster_y_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_y]["class"] == "y"])
+cluster_z_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_z]["class"] == "z"])
+
+# Plot heatmaps for each cluster
+plot_heatmap(cluster_x_data, "Heatmap for Cluster X")
+plot_heatmap(cluster_y_data, "Heatmap for Cluster Y")
+plot_heatmap(cluster_z_data, "Heatmap for Cluster Z")
+
+#Print medoids
+print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
+
+
+# Print the variance for each cluster and the total variance
 print("Variance for cluster x:", variance_x)
 print("Variance for cluster y:", variance_y)
 print("Variance for cluster z:", variance_z)
 print("Total variance:", (variance_x+variance_y+variance_z) / 3)
 
 # Print the Jaccard Similarity Matrix with the values and classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value&Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Value&Class.txt", "w") as file:
     # Write header
     file.write("        " + "        ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -217,7 +260,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Class.txt", "w") as file:
     # Write header
     file.write("        " + "  ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -227,7 +270,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Class
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the values for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/6_Clustering/output/Value.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Value.txt", "w") as file:
     # Write header
     file.write("        " + "   ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
