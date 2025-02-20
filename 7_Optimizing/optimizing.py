@@ -76,10 +76,10 @@ def variation(medoid_idx):
 # Jaccard Heatmap for each cluster
 def plot_heatmap(cluster_data, title):
     plt.figure(figsize=(10, 8))
-    sns.heatmap(cluster_data, cmap="coolwarm", yticklabels=True)
+    sns.heatmap(cluster_data.T, cmap="coolwarm", yticklabels=False)
     plt.title(title)
-    plt.xlabel("NPs")
-    plt.ylabel("Windows")
+    plt.xlabel("Windows")
+    plt.ylabel("NPs")
     
     plt.show()
 
@@ -178,7 +178,7 @@ variance_y = 1
 variance_z = 1
 
 # Get random medoids
-for i in range(0, 10000):
+for i in range(0, 100):
     # Get random indices for centroid of classes
     medoid_x = random.randint(0, len(Jaccard) - 1)
     medoid_y = random.randint(0, len(Jaccard) - 1)
