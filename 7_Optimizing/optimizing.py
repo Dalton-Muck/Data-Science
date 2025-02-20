@@ -178,7 +178,7 @@ variance_y = 1
 variance_z = 1
 
 # Get random medoids
-for i in range(0, 100):
+for i in range(0, 10000):
     # Get random indices for centroid of classes
     medoid_x = random.randint(0, len(Jaccard) - 1)
     medoid_y = random.randint(0, len(Jaccard) - 1)
