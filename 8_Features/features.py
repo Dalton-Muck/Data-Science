@@ -1,10 +1,8 @@
 # Dalton Muck
-# CS4150 Activity #7
-
+# CS4150 Activity #6
+import matplotlib.pyplot as plt
 import random
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 # Have to reset class values before classifying each NP
 def reset_class_values(Jaccard, hist1_np_data):
     # Reset class values
@@ -73,18 +71,54 @@ def variation(medoid_idx):
         return 0
     return round(total_distance / cluster_size, 5)
 
-# Jaccard Heatmap for each cluster
-def plot_heatmap(cluster_data, title):
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(cluster_data.T, cmap="coolwarm", yticklabels=False)
-    plt.title(title)
-    plt.xlabel("Windows")
-    plt.ylabel("NPs")
-    
+def correlation(hist1_features, hist1_data, list, windows, nps, feature):
+    for i in range(nps):
+        numerator = 0
+        denominator = 0
+        for j in range(windows):
+            if hist1_data[j][i] == 1:
+                denominator += 1
+                if hist1_features[j][feature] >= 1:
+                    numerator += 1
+        list.append(numerator / denominator)
+
+def create_boxplot(data, tick_labels, xlabel, ylabel, title, ax):
+    ax.boxplot(data, tick_labels=tick_labels)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+def plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np_data, Jaccard, medoid_x, medoid_y, medoid_z):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Data for boxplot for Hist1
+    data_hist1 = [
+        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_x]["class"] == "x"],
+        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_y]["class"] == "y"],
+        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_z]["class"] == "z"]
+    ]
+
+    # Create boxplot for Hist1
+    create_boxplot(data_hist1, ['Cluster X', 'Cluster Y', 'Cluster Z'], 'Clusters', 'Percentage of windows in an NP that contain histone genes', 'Boxplot of Histone Gene Percentage by Cluster (Hist1)', ax1)
+
+    # Data for boxplot for LAD
+    data_lad = [
+        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_x]["class"] == "x"],
+        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_y]["class"] == "y"],
+        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_z]["class"] == "z"]
+    ]
+
+    # Create boxplot for LAD
+    create_boxplot(data_lad, ['Cluster X', 'Cluster Y', 'Cluster Z'], 'Clusters', 'Percentage of windows in an NP that contain LAD genes', 'Boxplot of LAD Gene Percentage by Cluster (LAD)', ax2)
+
+    # Show plot
+    plt.tight_layout()
     plt.show()
 
 # Open the file for reading
-filename = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
+datafile = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
+# Open file with features
+features = "/Users/tm033520/Documents/4150/Data-Science/Hist1_region_features.csv"
 # 2D list to hold the data
 data = []
 # names of each window and total number of NP's in window
@@ -97,9 +131,11 @@ hist1_data = []
 hist1_np_data = []
 # names of each window in Hist1 and total number of NP's in window
 hist1_window_data = []
+# Holds Hist1 feature data
+hist1_features = []
 
 # Load data into structures and data array
-with open(filename, "r") as file:
+with open(datafile, "r") as file:
     # Read the first row for NP names
     first_row = file.readline().strip().split()
     np_data = [{"name": name, "total": 0} for name in first_row[3:]]
@@ -124,6 +160,17 @@ with open(filename, "r") as file:
             for i in range(len(values)):
                 if values[i] != 0:
                     hist1_np_data[i]["total"] += 1
+
+with open(features, "r") as file:
+    # Skip the first row for feature names
+    file.readline()
+
+    for line in file:
+        row = line.strip().split(",")
+        hist1_features.append([int(value) for value in row[1:]])  # Skip the first column
+
+# LAD is the 9th column or index 8
+# Hist1 is the 13th column or index 12
 
 # Remove columns (and corresponding NP_data) where all values are 0
 columns_to_keep = [col_idx for col_idx in range(len(np_data)) if any(row[col_idx] != 0 for row in hist1_data)]
@@ -177,6 +224,8 @@ variance_x = 1
 variance_y = 1
 variance_z = 1
 
+
+
 # Get random medoids
 for i in range(0, 1000):
     # Get random indices for centroid of classes
@@ -227,19 +276,8 @@ for i in range(0, 1000):
         variance_z = variation(medoid_z)
 
 
-# Extract data for each cluster
-cluster_x_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_x]["class"] == "x"])
-cluster_y_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_y]["class"] == "y"])
-cluster_z_data = np.array([hist1_data[i] for i in range(min(len(hist1_np_data), len(hist1_data))) if Jaccard[i][medoid_z]["class"] == "z"])
-
-# Plot heatmaps for each cluster
-plot_heatmap(cluster_x_data, "Heatmap for Cluster X")
-plot_heatmap(cluster_y_data, "Heatmap for Cluster Y")
-plot_heatmap(cluster_z_data, "Heatmap for Cluster Z")
-
 #Print medoids
 print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
-
 
 # Print the variance for each cluster and the total variance
 print("Variance for cluster x:", variance_x)
@@ -247,8 +285,18 @@ print("Variance for cluster y:", variance_y)
 print("Variance for cluster z:", variance_z)
 print("Total variance:", (variance_x+variance_y+variance_z) / 3)
 
+np_correlation_hist1 = []
+np_correlation_lad = []
+hist1_col = 8
+lad_col = 12
+# Call correlation function
+correlation(hist1_features, hist1_data, np_correlation_hist1, len(hist1_window_data), len(hist1_np_data), hist1_col)
+correlation(hist1_features, hist1_data, np_correlation_lad, len(hist1_window_data), len(hist1_np_data), lad_col)
+# Call the function to plot the boxplots
+plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np_data, Jaccard, medoid_x, medoid_y, medoid_z)
+
 # Print the Jaccard Similarity Matrix with the values and classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Value&Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value&Class.txt", "w") as file:
     # Write header
     file.write("        " + "        ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -260,7 +308,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Value
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Class.txt", "w") as file:
     # Write header
     file.write("        " + "  ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -270,7 +318,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Class
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the values for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/7_Optimizing/output/Value.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value.txt", "w") as file:
     # Write header
     file.write("        " + "   ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
