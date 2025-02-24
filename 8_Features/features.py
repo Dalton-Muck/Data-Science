@@ -218,7 +218,6 @@ for i in range(len(hist1_np_data)):  # rows
             # Calculate Normalized Jaccard Similarity Index
             Jaccard[i][j]["value"] = M11 / least_windows
 
-
 # Initialize variance variables
 variance_x = 1
 variance_y = 1
@@ -227,7 +226,7 @@ variance_z = 1
 
 
 # Get random medoids
-for i in range(0, 1000):
+for i in range(0, 100):
     # Get random indices for centroid of classes
     medoid_x = random.randint(0, len(Jaccard) - 1)
     medoid_y = random.randint(0, len(Jaccard) - 1)
@@ -267,6 +266,9 @@ for i in range(0, 1000):
         medoid_x = x_closest
         medoid_y = y_closest
         medoid_z = z_closest
+        medoid_x = 107
+        medoid_y = 136
+        medoid_z = 3
         iterations += 1
 
     # Calculate within-cluster variance and update if the new variance is better (lower) than the previous variance
