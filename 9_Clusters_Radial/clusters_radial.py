@@ -115,6 +115,69 @@ def plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np
     plt.tight_layout()
     plt.show()
 
+def calculate_radial_distribution(np_data, hist1_np_data):
+    min_total = min(np["total"] for np in np_data)
+    max_total = max(np["total"] for np in np_data)
+    range_total = (max_total - min_total) / 5
+
+    j = 0
+    for i in range(len(np_data)):
+        if j < len(hist1_np_data) and np_data[i]["name"] == hist1_np_data[j]["name"]:
+            if np_data[i]["total"] <= range_total:
+                hist1_np_data[j]["radial"] = 1
+            elif np_data[i]["total"] <= 2 * range_total:
+                hist1_np_data[j]["radial"] = 2
+            elif np_data[i]["total"] <= 3 * range_total:
+                hist1_np_data[j]["radial"] = 3
+            elif np_data[i]["total"] <= 4 * range_total:
+                hist1_np_data[j]["radial"] = 4
+            else:
+                hist1_np_data[j]["radial"] = 5
+            j += 1
+
+def calculate_np_percentage_by_class(Jaccard, hist1_np_data, medoid_x, class_label):
+    strongly_apical = 0
+    somewhat_apical = 0
+    neither_apical_nor_equatorial = 0
+    somewhat_equatorial = 0
+    strongly_equatorial = 0
+
+    for i in range(len(hist1_np_data)):
+        if Jaccard[i][medoid_x]["class"] == class_label:
+            if hist1_np_data[i]["radial"] == 1:
+                strongly_apical += 1
+            elif hist1_np_data[i]["radial"] == 2:
+                somewhat_apical += 1
+            elif hist1_np_data[i]["radial"] == 3:
+                neither_apical_nor_equatorial += 1
+            elif hist1_np_data[i]["radial"] == 4:
+                somewhat_equatorial += 1
+            elif hist1_np_data[i]["radial"] == 5:
+                strongly_equatorial += 1
+
+    # Find percentage of NP's in each list
+    strongly_apical_percentage = strongly_apical / len(hist1_np_data)
+    somewhat_apical_percentage = somewhat_apical / len(hist1_np_data)
+    neither_apical_nor_equatorial_percentage = neither_apical_nor_equatorial / len(hist1_np_data)
+    somewhat_equatorial_percentage = somewhat_equatorial / len(hist1_np_data)
+    strongly_equatorial_percentage = strongly_equatorial / len(hist1_np_data)
+
+    # Call the function to plot the distribution
+    plot_np_percentage_distribution(strongly_apical_percentage, somewhat_apical_percentage, neither_apical_nor_equatorial_percentage, somewhat_equatorial_percentage, strongly_equatorial_percentage, class_label)
+
+def plot_np_percentage_distribution(strongly_apical_percentage, somewhat_apical_percentage, neither_apical_nor_equatorial_percentage, somewhat_equatorial_percentage, strongly_equatorial_percentage, class_label):
+    # Box a bar graph with these 5 percentages
+    fig, ax = plt.subplots()
+    barWidth = 0.3
+    bars1 = [strongly_apical_percentage, somewhat_apical_percentage, neither_apical_nor_equatorial_percentage, somewhat_equatorial_percentage, strongly_equatorial_percentage]
+    r1 = np.arange(len(bars1))
+    plt.bar(r1, bars1, color='blue', width=barWidth, edgecolor='grey', label='Percentage of NP in each range')
+    plt.xlabel('Range', fontweight='bold')
+    plt.xticks([r for r in range(len(bars1))], ['Strongly Apical', 'Somewhat Apical', 'Neither Apical nor Equatorial', 'Somewhat Equatorial', 'Strongly Equatorial'], fontsize=5)
+    plt.ylabel('Percentage of NP in each radial rating', fontweight='bold')
+    plt.title('Percentage of NP in each range for cluster ' + class_label)
+    plt.tight_layout()
+    plt.show()
 # Open the file for remmading
 datafile = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
 # Open file with features
@@ -226,7 +289,7 @@ variance_z = 1
 
 
 # Get random medoids
-for i in range(0, 100):
+for i in range(0, 1000):
     # Get random indices for centroid of classes
     medoid_x = random.randint(0, len(Jaccard) - 1)
     medoid_y = random.randint(0, len(Jaccard) - 1)
@@ -266,9 +329,9 @@ for i in range(0, 100):
         medoid_x = x_closest
         medoid_y = y_closest
         medoid_z = z_closest
-        medoid_x = 107
-        medoid_y = 136
-        medoid_z = 3
+        # medoid_x = 107
+        # medoid_y = 136
+        # medoid_z = 3
         iterations += 1
 
     # Calculate within-cluster variance and update if the new variance is better (lower) than the previous variance
@@ -281,21 +344,16 @@ for i in range(0, 100):
 #Print medoids
 print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
 
-# Print the variance for each cluster and the total variance
-print("Variance for cluster x:", variance_x)
-print("Variance for cluster y:", variance_y)
-print("Variance for cluster z:", variance_z)
-print("Total variance:", (variance_x+variance_y+variance_z) / 3)
+# Call the function to calculate the radial distribution
+calculate_radial_distribution(np_data, hist1_np_data)
 
-np_correlation_hist1 = []
-np_correlation_lad = []
-hist1_col = 12
-lad_col = 8
-# Call correlation function
-correlation(hist1_features, hist1_data, np_correlation_hist1, len(hist1_window_data), len(hist1_np_data), hist1_col)
-correlation(hist1_features, hist1_data, np_correlation_lad, len(hist1_window_data), len(hist1_np_data), lad_col)
-# Call the function to plot the boxplots
-plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np_data, Jaccard, medoid_x, medoid_y, medoid_z)
+# Call the function to calculate the percentage of NP's in each class
+calculate_np_percentage_by_class(Jaccard, hist1_np_data, medoid_x, "x")
+calculate_np_percentage_by_class(Jaccard, hist1_np_data, medoid_y, "y")
+calculate_np_percentage_by_class(Jaccard, hist1_np_data, medoid_z, "z")
+
+# plots are made after perctanges are calculated in that function
+
 
 # Print the Jaccard Similarity Matrix with the values and classes for the 3 clusters
 with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value&Class.txt", "w") as file:

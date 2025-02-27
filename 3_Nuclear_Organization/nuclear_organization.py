@@ -76,27 +76,29 @@ print("5. Max NP in window:", max(NP_count))
 
 # 6. Estimate radial position
 # Get number of NPs in each window
-np_data.sort(key=lambda np: np["total"])
-min_total = np_data[0]["total"]
-max_total = np_data[-1]["total"]
+min_total = min(np["total"] for np in np_data)
+max_total = max(np["total"] for np in np_data)
+ 
 range_total = max_total - min_total
-#assign each NP to a range
-np_ratios = [np["total"] / range_total for np in hist1_np_data]
-average_ratio = sum(np_ratios) / len(np_ratios)
-print("The average radial ratio is:", average_ratio)
+range_total = range_total/5
 ranges = [0, 0, 0, 0, 0]
-for ratio in np_ratios:
-    if 0 <= ratio < 0.2:
-        ranges[0] += 1
-    elif 0.2 <= ratio < 0.4:
-        ranges[1] += 1
-    elif 0.4 <= ratio < 0.6:
-        ranges[2] += 1
-    elif 0.6 <= ratio < 0.8:
-        ranges[3] += 1
-    elif 0.8 <= ratio <= 1:
-        ranges[4] += 1
+j = 0
+for i in range(len(np_data)):
+    if j < len(hist1_np_data) and np_data[i]["name"] == hist1_np_data[j]["name"]:
+        j += 1
+        if np_data[i]["total"] <= range_total:
+            ranges[0] += 1
+        elif np_data[i]["total"] <= 2 * range_total:
+            ranges[1] += 1
+        elif np_data[i]["total"] <= 3 * range_total:
+            ranges[2] += 1
+        elif np_data[i]["total"] <= 4 * range_total:
+            ranges[3] += 1
+        elif np_data[i]["total"] <= 5 * range_total:
+            ranges[4] += 1
 #find the most common range
+# Print total ranges counts
+print("Total counts in each range:", ranges)
 most_common_range_index = ranges.index(max(ranges))
 range_labels = ["1", "2", "3", "4", "5"]
 print("The most common radial position range is:", range_labels[most_common_range_index])

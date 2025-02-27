@@ -59,60 +59,67 @@ def find_medoid(Jaccard, hist1_np_data, medoid_idx, class_label):
 
     return closest_idx
 
-# Find difference between medoid in every NP in that cluster
-def variation(medoid_idx):
-    total_distance = 0
-    cluster_size = 0
-    for i in range(len(hist1_np_data)):
-        if Jaccard[i][medoid_idx]["class"] == Jaccard[medoid_idx][medoid_idx]["class"]:
-            total_distance += (Jaccard[medoid_idx][medoid_idx]["value"] - Jaccard[i][medoid_idx]["value"])
-            cluster_size += 1
-    if cluster_size == 0:
-        return 0
-    return round(total_distance / cluster_size, 5)
-
-def correlation(hist1_features, hist1_data, list, windows, nps, feature):
+def correlation(hist1_features, hist1_data, windows, nps, feature, cluster_idx, cluster_name):
+    correlation_list = []
     for i in range(nps):
         numerator = 0
         denominator = 0
         for j in range(windows):
-            if hist1_data[j][i] == 1:
+            if hist1_data[j][i] == 1 and Jaccard[i][cluster_idx]["class"] == cluster_name:
                 denominator += 1
                 if hist1_features[j][feature] >= 1:
                     numerator += 1
-        list.append(numerator / denominator)
+            if denominator != 0:
+                correlation_list.append(numerator / denominator)
+            else:
+                correlation_list.append(0)
+    return sum(correlation_list) / len(correlation_list) if correlation_list else 0
 
-def create_boxplot(data, tick_labels, xlabel, ylabel, title, ax):
-    ax.boxplot(data, tick_labels=tick_labels)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
+def calculate_feature_correlation(hist1_features, hist1_data, hist1_np_data, feature_col, medoid_x, medoid_y, medoid_z):
+    feature_x = []
+    feature_y = []
+    feature_z = []
 
-def plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np_data, Jaccard, medoid_x, medoid_y, medoid_z):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    for feature in feature_col:
+        feature_x.append(correlation(hist1_features, hist1_data, len(hist1_data), len(hist1_np_data), feature, medoid_x, "x"))
+        feature_y.append(correlation(hist1_features, hist1_data, len(hist1_data), len(hist1_np_data), feature, medoid_y, "y"))
+        feature_z.append(correlation(hist1_features, hist1_data, len(hist1_data), len(hist1_np_data), feature, medoid_z, "z"))
 
-    # Data for boxplot for Hist1
-    data_hist1 = [
-        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_x]["class"] == "x"],
-        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_y]["class"] == "y"],
-        [np_correlation_hist1[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_z]["class"] == "z"]
-    ]
+    return feature_x, feature_y, feature_z
 
-    # Create boxplot for Hist1
-    create_boxplot(data_hist1, ['Cluster X', 'Cluster Y', 'Cluster Z'], 'Clusters', 'Percentage of windows in an NP that contain histone genes', 'Boxplot of Histone Gene Percentage by Cluster (Hist1)', ax1)
+def plot_radar_chart(feature_x, feature_y, feature_z, feature_names):
+    labels = feature_names
+    num_vars = len(labels)
 
-    # Data for boxplot for LAD
-    data_lad = [
-        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_x]["class"] == "x"],
-        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_y]["class"] == "y"],
-        [np_correlation_lad[i] for i in range(len(hist1_np_data)) if Jaccard[i][medoid_z]["class"] == "z"]
-    ]
+    # Compute angle for each axis
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
 
-    # Create boxplot for LAD
-    create_boxplot(data_lad, ['Cluster X', 'Cluster Y', 'Cluster Z'], 'Clusters', 'Percentage of windows in an NP that contain LAD genes', 'Boxplot of LAD Gene Percentage by Cluster (LAD)', ax2)
+    # The radar chart is a circle, so we need to "complete the loop"
+    # and append the start value to the end.
+    feature_x += feature_x[:1]
+    feature_y += feature_y[:1]
+    feature_z += feature_z[:1]
+    angles += angles[:1]
 
-    # Show plot
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+
+    ax.fill(angles, feature_x, color='red', alpha=0.25, label='Cluster x')
+    ax.fill(angles, feature_y, color='blue', alpha=0.25, label='Cluster y')
+    ax.fill(angles, feature_z, color='green', alpha=0.25, label='Cluster z')
+
+    ax.plot(angles, feature_x, color='red', linewidth=2)
+    ax.plot(angles, feature_y, color='blue', linewidth=2)
+    ax.plot(angles, feature_z, color='green', linewidth=2)
+
+    # Draw one axe per variable + add labels
+    ax.set_yticklabels([])
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(labels)
+
+    # Add a legend
+    ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
+
+    plt.title('Feature Correlation for Clusters', pad=20)
     plt.show()
 
 # Open the file for remmading
@@ -162,8 +169,8 @@ with open(datafile, "r") as file:
                     hist1_np_data[i]["total"] += 1
 
 with open(features, "r") as file:
-    # Skip the first row for feature names
-    file.readline()
+    # Read the first row for feature names
+    feature_names = file.readline().strip().split(",")[1:]
 
     for line in file:
         row = line.strip().split(",")
@@ -218,13 +225,6 @@ for i in range(len(hist1_np_data)):  # rows
             # Calculate Normalized Jaccard Similarity Index
             Jaccard[i][j]["value"] = M11 / least_windows
 
-# Initialize variance variables
-variance_x = 1
-variance_y = 1
-variance_z = 1
-
-
-
 # Get random medoids
 for i in range(0, 100):
     # Get random indices for centroid of classes
@@ -271,34 +271,39 @@ for i in range(0, 100):
         medoid_z = 3
         iterations += 1
 
-    # Calculate within-cluster variance and update if the new variance is better (lower) than the previous variance
-    if variation(medoid_x) + variation(medoid_y) + variation(medoid_z) < (variance_x + variance_y + variance_z):
-        variance_x = variation(medoid_x)
-        variance_y = variation(medoid_y)
-        variance_z = variation(medoid_z)
-
 
 #Print medoids
 print("medoid_x: ", medoid_x, "medoid_y: ", medoid_y, "medoid_z: ", medoid_z)
 
-# Print the variance for each cluster and the total variance
-print("Variance for cluster x:", variance_x)
-print("Variance for cluster y:", variance_y)
-print("Variance for cluster z:", variance_z)
-print("Total variance:", (variance_x+variance_y+variance_z) / 3)
+# The list of features to test
+feature_names = [
+    "CTCF-7BWU",
+    "NANOG",
+    "LAD",
+    "RNAPII-S5P",
+    "RNAPII-S7P",
+    "h3k27me3",
+    "Hist1",
+    "Vmn",
+    "H3K9me3",
+    "pou5f1",
+    "sox2",
+    "H3K36me3",
+    "RNAPII-S2P",
+    "Enhancer",
+    "H3K20me3",
+]
+feature_col = [3, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 21, 22]
 
-np_correlation_hist1 = []
-np_correlation_lad = []
-hist1_col = 12
-lad_col = 8
-# Call correlation function
-correlation(hist1_features, hist1_data, np_correlation_hist1, len(hist1_window_data), len(hist1_np_data), hist1_col)
-correlation(hist1_features, hist1_data, np_correlation_lad, len(hist1_window_data), len(hist1_np_data), lad_col)
-# Call the function to plot the boxplots
-plot_correlation_boxplots(np_correlation_hist1, np_correlation_lad, hist1_np_data, Jaccard, medoid_x, medoid_y, medoid_z)
+# Calculate feature correlations
+feature_x, feature_y, feature_z = calculate_feature_correlation(hist1_features, hist1_data, hist1_np_data, feature_col, medoid_x, medoid_y, medoid_z)
+
+# Call the function to plot the radar chart
+plot_radar_chart(feature_x, feature_y, feature_z, feature_names)
+
 
 # Print the Jaccard Similarity Matrix with the values and classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value&Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/10_RadarChart/output/Value&Class.txt", "w") as file:
     # Write header
     file.write("        " + "        ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -310,7 +315,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value&C
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the classes for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Class.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/10_RadarChart/output/Class.txt", "w") as file:
     # Write header
     file.write("        " + "  ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
@@ -320,7 +325,7 @@ with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Class.t
         file.write("\n")
 
 # Print the Jaccard Similarity Matrix with only the values for the 3 clusters
-with open("/Users/tm033520/Documents/4150/Data-Science/8_Features/output/Value.txt", "w") as file:
+with open("/Users/tm033520/Documents/4150/Data-Science/10_RadarChart/output/Value.txt", "w") as file:
     # Write header
     file.write("        " + "   ".join([hist1_np_data[idx]["name"] for idx in [medoid_x, medoid_y, medoid_z]]) + "\n")
     for i in range(len(Jaccard)):
