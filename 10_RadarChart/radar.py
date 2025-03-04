@@ -1,5 +1,5 @@
 # Dalton Muck
-# CS4150 Activity #6
+# CS4150 Activity #10
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -61,25 +61,32 @@ def find_medoid(Jaccard, hist1_np_data, medoid_idx, class_label):
 
 def correlation(hist1_features, hist1_data, windows, nps, feature, cluster_idx, cluster_name):
     correlation_list = []
+    # nuclear profiles
     for i in range(nps):
         numerator = 0
         denominator = 0
+        # rows
         for j in range(windows):
+            # check if feature is present in NP and is in cluster
             if hist1_data[j][i] == 1 and Jaccard[i][cluster_idx]["class"] == cluster_name:
                 denominator += 1
+                # check if feature is present in window
                 if hist1_features[j][feature] >= 1:
                     numerator += 1
+            # correct for division by zero
             if denominator != 0:
                 correlation_list.append(numerator / denominator)
             else:
                 correlation_list.append(0)
+    # return correlation percentage 
     return sum(correlation_list) / len(correlation_list) if correlation_list else 0
 
 def calculate_feature_correlation(hist1_features, hist1_data, hist1_np_data, feature_col, medoid_x, medoid_y, medoid_z):
     feature_x = []
     feature_y = []
     feature_z = []
-
+    # get list of correlation values for each feature
+    # do this 15 times for each cluster, 45 total
     for feature in feature_col:
         feature_x.append(correlation(hist1_features, hist1_data, len(hist1_data), len(hist1_np_data), feature, medoid_x, "x"))
         feature_y.append(correlation(hist1_features, hist1_data, len(hist1_data), len(hist1_np_data), feature, medoid_y, "y"))
@@ -112,7 +119,11 @@ def plot_radar_chart(feature_x, feature_y, feature_z, feature_names):
     ax.plot(angles, feature_z, color='green', linewidth=2)
 
     # Draw one axe per variable + add labels
-    ax.set_yticklabels([])
+    max_value = max(max(feature_x), max(feature_y), max(feature_z))
+    yticks = np.arange(0, max_value + 0.05, 0.05)
+    yticklabels = [f'{tick:.2f}' for tick in yticks]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticklabels)
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels)
 
@@ -266,9 +277,6 @@ for i in range(0, 100):
         medoid_x = x_closest
         medoid_y = y_closest
         medoid_z = z_closest
-        medoid_x = 107
-        medoid_y = 136
-        medoid_z = 3
         iterations += 1
 
 
@@ -296,6 +304,8 @@ feature_names = [
 feature_col = [3, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 21, 22]
 
 # Calculate feature correlations
+# Each list will contain the average correlation for each feature for each cluster
+# each list is of size 15
 feature_x, feature_y, feature_z = calculate_feature_correlation(hist1_features, hist1_data, hist1_np_data, feature_col, medoid_x, medoid_y, medoid_z)
 
 # Call the function to plot the radar chart
