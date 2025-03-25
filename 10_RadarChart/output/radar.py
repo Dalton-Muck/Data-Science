@@ -95,7 +95,9 @@ def calculate_feature_correlation(hist1_features, hist1_data, hist1_np_data, fea
     return feature_x, feature_y, feature_z
 
 def plot_radar_chart(feature_x, feature_y, feature_z, feature_names):
+    # Labels for each feature
     labels = feature_names
+    # Number of variables/features
     num_vars = len(labels)
 
     # Compute angle for each axis
@@ -108,17 +110,20 @@ def plot_radar_chart(feature_x, feature_y, feature_z, feature_names):
     feature_z += feature_z[:1]
     angles += angles[:1]
 
+    # Create a subplot with polar projection
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
 
+    # Fill the area for each cluster
     ax.fill(angles, feature_x, color='red', alpha=0.25, label='Cluster x')
     ax.fill(angles, feature_y, color='blue', alpha=0.25, label='Cluster y')
     ax.fill(angles, feature_z, color='green', alpha=0.25, label='Cluster z')
 
+    # Draw the outline for each cluster
     ax.plot(angles, feature_x, color='red', linewidth=2)
     ax.plot(angles, feature_y, color='blue', linewidth=2)
     ax.plot(angles, feature_z, color='green', linewidth=2)
 
-    # Draw one axe per variable + add labels
+    # Draw one axis per variable and add labels
     max_value = max(max(feature_x), max(feature_y), max(feature_z))
     yticks = np.arange(0, max_value + 0.05, 0.05)
     yticklabels = [f'{tick:.2f}' for tick in yticks]
@@ -130,7 +135,9 @@ def plot_radar_chart(feature_x, feature_y, feature_z, feature_names):
     # Add a legend
     ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
 
+    # Set the title of the plot
     plt.title('Feature Correlation for Clusters', pad=20)
+    # Display the plot
     plt.show()
 
 # Open the file for remmading
