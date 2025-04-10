@@ -1,7 +1,7 @@
 # Dalton Muck
-# CS4150 Activity #10
+# CS4150 Activity #12
+import networkx as nx
 import matplotlib.pyplot as plt
-from matplotlib import pyplot as plt
 
 # Calculates Cosegregation between all windows
 def calculate_cosegregation(hist1_data, hist1_window_data, hist1_np_data):
@@ -47,58 +47,6 @@ def calculate_normalized_linkage(linkage, detection_freq, hist1_window_data):
             else:
                 normal_linkage[window1][window2] = 0
     return normal_linkage
-
-# interactive heat map of the normalized linkage values
-# https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html 
-def plot_normalized_linkage_heatmap(normal_linkage, hist1_window_data):
-    # Create a figure and axis for the plot
-    fig, ax = plt.subplots()
-
-    # Create a heatmap using the normalized linkage values
-    heatmap = ax.imshow(normal_linkage, cmap="coolwarm")
-
-    # Add a colorbar to the heatmap
-    cbar = plt.colorbar(heatmap)
-    cbar.set_label("Normalized Linkage Value")  # Label for the colorbar
-
-    # Set the title and axis labels for the heatmap
-    plt.title("Normalized Linkage Hist1 Region")
-    plt.xlabel("Window")
-    plt.ylabel("Window")
-
-    # Set ticks to increment every 10 for both rows and columns
-    num_windows = len(hist1_window_data)  # Total number of windows
-    plt.xticks(ticks=range(0, num_windows, 10), labels=range(0, num_windows, 10))  # X-axis ticks
-    plt.yticks(ticks=range(0, num_windows, 10), labels=range(0, num_windows, 10))  # Y-axis ticks
-
-    # Create an annotation object to display value and coordinates on hover
-    annot = ax.annotate("", xy=(0, 0), xytext=(10, 10), textcoords="offset points",
-                        bbox=dict(boxstyle="round", fc="w"),
-                        arrowprops=dict(arrowstyle="->"))
-    annot.set_visible(False)  # Initially hide the annotation
-
-    # Function to update the annotation with the hovered cell's information
-    def update_annot(event):
-        if event.inaxes == ax:  # Check if the event occurred within the heatmap axes
-            x, y = int(event.xdata + 0.5), int(event.ydata + 0.5)  # Get the cell coordinates
-            if 0 <= x < num_windows and 0 <= y < num_windows:  # Ensure coordinates are within bounds
-                annot.xy = (x, y)  # Set the annotation position
-                value = normal_linkage[y][x]  # Get the value at the hovered cell
-                annot.set_text(f"X: {x}, Y: {y}\nValue: {value:.4f}")  # Set the annotation text
-                annot.set_visible(True)  # Make the annotation visible
-            else:
-                annot.set_visible(False)  # Hide the annotation if out of bounds
-
-    # Function to handle hover events and update the annotation
-    def on_hover(event):
-        update_annot(event)  # Update the annotation with the current hover event
-        fig.canvas.draw_idle()  # Redraw the canvas to reflect changes
-
-    # Connect the hover event to the on_hover function
-    fig.canvas.mpl_connect("motion_notify_event", on_hover)
-
-    # Display the heatmap
-    plt.show()
 
 # Open the file for remmading
 datafile = "/Users/tm033520/Documents/4150/Data-Science/data.txt"
@@ -155,7 +103,6 @@ hist1_np_data = [hist1_np_data[col_idx] for col_idx in columns_to_keep]
 hist1_window_data = [{"name": hist1_window_data[i]["name"], "total": sum(hist1_data[i])} for i in range(len(hist1_data))]
 
 
-
 # Detection frequency of each widnow in Hist1
 # this is the total number of NP's present in the window divided by the total number of NP's in Hist1 (163)
 detection_freq = [window["total"] / len(hist1_np_data) for window in hist1_window_data]
@@ -166,4 +113,58 @@ linkage = calculate_linkage(cosegregation, detection_freq, hist1_window_data)
 
 normal_linkage = calculate_normalized_linkage(linkage, detection_freq, hist1_window_data)
 
-plot_normalized_linkage_heatmap(normal_linkage, hist1_window_data)
+# flatten the normal_linkage matrix
+flattened_normal_linkage = []
+for i in range(len(normal_linkage)):
+    for j in range(len(normal_linkage[i])):
+        if i != j:
+            flattened_normal_linkage.append(normal_linkage[i][j])
+
+# sort the flattened list
+sorted_normal_linkage = sorted(flattened_normal_linkage, reverse=False)
+# find the 75th percentile
+threshold = sorted_normal_linkage[int(len(sorted_normal_linkage) * 0.75)]
+print("Threshold:", threshold)
+# evaluate if every value in  the normal_linkage matrix is greater than the threshold
+# if it is greater than the threshold, set it to 1, else set it to 0
+binary_normal_linkage = [[1 if normal_linkage[i][j] > threshold else 0 for j in range(len(normal_linkage[i]))] for i in range(len(normal_linkage))]
+
+# sum the rows of the binary_normal_linkage matrix
+sum_rows = [sum(row) for row in binary_normal_linkage]
+# Divide the sums by the number of NP's
+degree_centrality_list = [row_sum / (len(hist1_window_data)- 1) for row_sum in sum_rows]
+
+#sort the degree_centrality_list in ascending order
+degree_centrality_list = sorted(degree_centrality_list)
+# print the min max and average of the degree_centrality_list
+print("Degree Centrality List:")
+print("Min:", degree_centrality_list[0])
+print("Max:", degree_centrality_list[-1])
+print("Average:", sum(degree_centrality_list) / len(degree_centrality_list))
+# print the degree_centrality_list
+print("Degree Centrality Values:")
+with open("degree_centrality_list.txt", "w") as file:
+    for i in range(1, len(degree_centrality_list) + 1):
+        file.write(f"window {i} {degree_centrality_list[i - 1]}\n")
+
+
+
+# use network x to create a graph
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+# Create a graph
+G = nx.Graph()
+# Add nodes with attributes
+for i in range(len(hist1_window_data)):
+    G.add_node(i, name=hist1_window_data[i]["name"], degree_centrality=degree_centrality_list[i])
+# Add edges based on the binary_normal_linkage matrix
+for i in range(len(binary_normal_linkage)):
+    for j in range(len(binary_normal_linkage[i])):
+        if binary_normal_linkage[i][j] == 1:
+            G.add_edge(i, j)
+nx.draw(G, with_labels=True)
+# Show the graph
+plt.axis('off')
+plt.show()
+
