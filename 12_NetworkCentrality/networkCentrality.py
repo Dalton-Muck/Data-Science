@@ -114,6 +114,8 @@ linkage = calculate_linkage(cosegregation, detection_freq, hist1_window_data)
 normal_linkage = calculate_normalized_linkage(linkage, detection_freq, hist1_window_data)
 
 # flatten the normal_linkage matrix
+# print windows not the index
+# also fix the graph so more related windows are larger
 flattened_normal_linkage = []
 for i in range(len(normal_linkage)):
     for j in range(len(normal_linkage[i])):
@@ -133,7 +135,15 @@ binary_normal_linkage = [[1 if normal_linkage[i][j] > threshold else 0 for j in 
 sum_rows = [sum(row) for row in binary_normal_linkage]
 # Divide the sums by the number of NP's
 degree_centrality_list = [row_sum / (len(hist1_window_data)- 1) for row_sum in sum_rows]
-
+# print the degree_centrality list in descending order while keeping the index matching the window
+with open("degree_centrality_list.txt", "w") as file:
+    sorted_degree_centrality = sorted(
+        enumerate(degree_centrality_list, start=1), 
+        key=lambda x: x[1], 
+        reverse=True
+    )
+    for window, centrality in sorted_degree_centrality:
+        file.write(f"window {window} {centrality}\n")
 #sort the degree_centrality_list in ascending order
 degree_centrality_list = sorted(degree_centrality_list)
 # print the min max and average of the degree_centrality_list
@@ -141,11 +151,6 @@ print("Degree Centrality List:")
 print("Min:", degree_centrality_list[0])
 print("Max:", degree_centrality_list[-1])
 print("Average:", sum(degree_centrality_list) / len(degree_centrality_list))
-# print the degree_centrality_list
-print("Degree Centrality Values:")
-with open("degree_centrality_list.txt", "w") as file:
-    for i in range(1, len(degree_centrality_list) + 1):
-        file.write(f"window {i} {degree_centrality_list[i - 1]}\n")
 
 
 
@@ -153,18 +158,36 @@ with open("degree_centrality_list.txt", "w") as file:
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+
 # Create a graph
 G = nx.Graph()
+
 # Add nodes with attributes
 for i in range(len(hist1_window_data)):
     G.add_node(i, name=hist1_window_data[i]["name"], degree_centrality=degree_centrality_list[i])
+
 # Add edges based on the binary_normal_linkage matrix
 for i in range(len(binary_normal_linkage)):
     for j in range(len(binary_normal_linkage[i])):
         if binary_normal_linkage[i][j] == 1:
             G.add_edge(i, j)
-nx.draw(G, with_labels=True)
+
+# Remove nodes with zero connections
+nodes_to_remove = [node for node in G.nodes if G.degree(node) == 0]
+G.remove_nodes_from(nodes_to_remove)
+
+# Calculate node sizes based on degree centrality
+node_sizes = [50 + 75 * G.degree(node) for node in G.nodes]
+
+# Draw the graph with node sizes
+pos = nx.spring_layout(G)  # Layout for better visualization
+nx.draw(
+    G, pos, with_labels=True, 
+    node_size=node_sizes, 
+    node_color="red", 
+    font_size=8, 
+    font_color="black"
+)
 # Show the graph
 plt.axis('off')
 plt.show()
-
